@@ -7,10 +7,25 @@ spring:
       discovery:
         enabled: true
         service-id: CONFIG
+      name: gateway
+      profile: dev
+  redis:
+    host: 47.102.135.76
+    port: 6379
 
 eureka:
   client:
     service-url:
       defaultZone: http://47.106.174.156:8761/eureka/
-
+zuul:
+  add-host-header: true
+  routes:
+    userservice:
+      path: /login/**
+      serviceId: service-user
+  ratelimit:
+    enabled: true
+    behind-proxy: true
+    key-prefix:
+    repository: redis
 
