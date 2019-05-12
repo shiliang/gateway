@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
@@ -69,11 +70,10 @@ public class RateLimiterFilter extends ZuulFilter {
         String key = RedisKeyUtil.getBizTokenlimitKey(userId);
         Reader reader = new InputStreamReader(Client.class.getClassLoader().getResourceAsStream("rateLimit.lua"));
         String luaScript = CharStreams.toString(reader);
-        DefaultRedisScript<Integer> redisScript = new DefaultRedisScript<>();
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
         redisScript.setScriptText(luaScript);
-        redisScript.setResultType(Integer.class);
-        List<String> keys = new ArrayList<>();
-        keys.add(key);
+        redisScript.setResultType(Long.class);
+
         /**
          * keys[1] = key;
          * arvg[1] = intervalPerPermit;
@@ -81,12 +81,12 @@ public class RateLimiterFilter extends ZuulFilter {
          * avrg[3] = 总令牌数
          * avrg[4] = 一个周期的时间毫秒
          */
-        Integer result = (Integer) redisTemplate.execute(redisScript, keys,
-                String.valueOf(intervalPerPermit),
-                String.valueOf(System.currentTimeMillis()),
-                String.valueOf(limit),
-                String.valueOf(intervalInMills));
-        return result == 1;
+        redisTemplate.execute(redisScript, Collections.singletonList(key),
+                intervalPerPermit,
+                System.currentTimeMillis(),
+                limit,
+                intervalInMills);
+        return true;
     }
 
 }
