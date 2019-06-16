@@ -56,6 +56,7 @@ public class RateLimiterFilter extends ZuulFilter {
     @Override
     public Object run() throws ZuulException {
         HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
+        //根据用户id来限流，如果一开始用户id不存在呢？
         String userId = request.getParameterValues("userId")[0];
         try {
             boolean res = access(userId);
